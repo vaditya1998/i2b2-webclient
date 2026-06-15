@@ -1,10 +1,10 @@
 .Header {
   margin: 0.7em;
   .HeaderNav {
+    width: 100%;
     background: rgba(85, 108, 214);
     .help {
-      margin-left: 2.5em;
-      margin-right: 2.5em;
+      margin-left: auto;
       color: white;
     }
   }
