@@ -2,8 +2,8 @@
 
 session_start();
 
-$_SESSION["shib-session-id"] = filter_input(INPUT_SERVER, 'AJP_Shib-Session-ID', FILTER_UNSAFE_RAW);
-$_SESSION["eppn"] = filter_input(INPUT_SERVER, 'AJP_eduPersonPrincipalName', FILTER_UNSAFE_RAW);
+$_SESSION["shib-session-id"] = preg_replace('/[^a-zA-Z0-9_-=^@]/', '', filter_input(INPUT_SERVER, 'AJP_Shib-Session-ID', FILTER_UNSAFE_RAW));
+$_SESSION["eppn"] = preg_replace('/[^a-zA-Z0-9_-=^@.]/', '', filter_input(INPUT_SERVER, 'AJP_eduPersonPrincipalName', FILTER_UNSAFE_RAW));
 
 $error_msg;
 if (isset($_SESSION['error_msg'])) {

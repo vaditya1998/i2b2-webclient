@@ -92,7 +92,7 @@ foreach($matches as $match){
 $PostBody = file_get_contents("php://input");
 if ($PostBody=="") {
     // no POST variables sent, assume this is user navigation
-    // load the inital page "default.htm"
+    // load the initial page "index.html"
     $IndexFile = dirname($_SERVER["SCRIPT_FILENAME"]).'/index.html';
     if (!file_exists($IndexFile) || !is_file($IndexFile)) {
         die("The initial HTML file does not exist!");

@@ -16,6 +16,7 @@ $GENE_DB_FILENAME = './i2b2_gene_list-FTS3.db3';
 // ini_set('display_startup_errors', 1);
 // error_reporting(E_ALL);
 
+error_reporting(0); // turn off all error reporting
 
 // CORS: Allow from any origin
 if (isset($_SERVER['HTTP_ORIGIN'])) {
