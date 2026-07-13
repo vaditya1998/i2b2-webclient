@@ -8,9 +8,6 @@ else
     export docker_reponame="local"
 fi
 
-# BASE=/home/runner/work/i2b2-docker-generator/i2b2-docker-generator/i2b2-web
-BASE=/home/admin/github_release/prod_final/i2b2-docker-generator/i2b2-web/
-
 WEBCLIENT_REPO=$(pwd)/..
 
 cd $WEBCLIENT_REPO
@@ -21,7 +18,7 @@ sed -i 's/services.i2b2.org/i2b2-core-server:8080/'   $WEBCLIENT_REPO/i2b2_confi
 sed -i 's#127.0.0.1:8080/#i2b2-core-server:8080/#g'  $WEBCLIENT_REPO/proxy.php
 sed -i 's#http://services.i2b2.org#http://i2b2-core-server:8080#g' $WEBCLIENT_REPO/proxy.php
 
-docker build -t $docker_username/$docker_reponame:i2b2-webclient_$WEBCLIENT_TAG $BASE/
+docker build -t $docker_username/$docker_reponame:i2b2-webclient_$WEBCLIENT_TAG $WEBCLIENT_REPO/
 
 if [ "$CI" = "true" ]; then
     docker push $docker_username/$docker_reponame:i2b2-webclient_$WEBCLIENT_TAG
