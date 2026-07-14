@@ -1,13 +1,4 @@
 WEBCLIENT_TAG=$(echo "$1" | tr '/' '-')
-if [ "$CI" = "true" ]; then
-    echo "Running in GitHub Actions.."
-else
-    echo "Running Locally.."
-    # echo "This script requires sudo access to install openjdk-21 & ant ."
-    export docker_username="local"
-    export docker_reponame="local"
-fi
-
 WEBCLIENT_REPO=$(pwd)/..
 
 cd $WEBCLIENT_REPO
@@ -21,7 +12,7 @@ sed -i 's#http://services.i2b2.org#http://i2b2-core-server:8080#g' $WEBCLIENT_RE
 
 docker build -t $docker_username/$docker_reponame:i2b2-webclient_$WEBCLIENT_TAG $WEBCLIENT_REPO/docker/
 
-if [ "$CI" = "true" ]; then
+if [ "$has_secrets" = "true" ]; then
     docker push $docker_username/$docker_reponame:i2b2-webclient_$WEBCLIENT_TAG
 fi
 

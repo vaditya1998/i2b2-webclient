@@ -20,7 +20,6 @@ jobs:
         run: |
           if [ -n "${{ secrets.DOCKER_LOGIN_TOKEN }}" ]; then
             echo "has_secrets=true" >> $GITHUB_OUTPUT
-            export CI="true"
           else
             echo "has_secrets=false" >> $GITHUB_OUTPUT
           fi
@@ -40,6 +39,8 @@ jobs:
           echo "Using tag: $web_tag"
 
       - name: Build and Push image
+        env:
+          has_secrets: ${{steps.secret-check.outputs.has_secrets}}
         run: |
           # Fails the script immediately if a command exits with a non-zero status
           set -e 
