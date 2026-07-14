@@ -1,28 +1,73 @@
-WEBCLIENT_TAG=$(echo "$1" | tr '/' '-')
-WEBCLIENT_REPO=$(pwd)/..
+#!/usr/bin/env bash
 
-cd $WEBCLIENT_REPO
-pwd
+set -Eeuo pipefail
 
-sed -i 's/services.i2b2.org/i2b2-core-server:8080/'   $WEBCLIENT_REPO/i2b2_config_domains.json
-# sed -i 's/debug: false/debug: true/'  $BASE/i2b2-webclient/i2b2_config_domains.json
+###############################################################################
+# Build and optionally publish i2b2-webclient Docker image
+#
+# Usage:
+#   ./create_docker_image.sh <branch-name>
+#
+# Example:
+#   ./create_docker_image.sh master
+###############################################################################
 
-sed -i 's#127.0.0.1:8080/#i2b2-core-server:8080/#g'  $WEBCLIENT_REPO/proxy.php
-sed -i 's#http://services.i2b2.org#http://i2b2-core-server:8080#g' $WEBCLIENT_REPO/proxy.php
 
-docker build -t $docker_username/$docker_reponame:i2b2-webclient_$WEBCLIENT_TAG $WEBCLIENT_REPO/docker/
+# Convert branch names such as:
+# release/1.8.2 -> release-1.8.2
+WEBCLIENT_TAG=$(echo "${1:-latest}" | tr '/' '-')
 
-if [ "$has_secrets" = "true" ]; then
-    docker push $docker_username/$docker_reponame:i2b2-webclient_$WEBCLIENT_TAG
+WEBCLIENT_REPO="$(pwd)/.."
+
+CONFIG_FILE="${WEBCLIENT_REPO}/i2b2_config_domains.json"
+PROXY_FILE="${WEBCLIENT_REPO}/proxy.php"
+
+IMAGE_TAG="${docker_username}/${docker_reponame}:i2b2-webclient_${WEBCLIENT_TAG}"
+
+echo "Repository: ${WEBCLIENT_REPO}"
+echo "Image Tag : ${IMAGE_TAG}"
+
+# Validate required files
+test -f "${CONFIG_FILE}"
+test -f "${PROXY_FILE}"
+
+cd "${WEBCLIENT_REPO}"
+
+###############################################################################
+# Update configuration for containerized deployment
+###############################################################################
+
+sed -i \
+    's/services.i2b2.org/i2b2-core-server:8080/' \
+    "${CONFIG_FILE}"
+
+sed -i \
+    's#127.0.0.1:8080/#i2b2-core-server:8080/#g' \
+    "${PROXY_FILE}"
+
+sed -i \
+    's#http://services.i2b2.org#http://i2b2-core-server:8080#g' \
+    "${PROXY_FILE}"
+
+###############################################################################
+# Build Docker image
+###############################################################################
+
+echo "Building Docker image..."
+
+docker build \
+    -t "${IMAGE_TAG}" \
+    "${WEBCLIENT_REPO}/docker/"
+
+###############################################################################
+# Publish image when registry credentials are available
+###############################################################################
+
+if [[ "${has_secrets:-false}" == "true" ]]; then
+    echo "Pushing image..."
+    docker push "${IMAGE_TAG}"
+else
+    echo "Docker credentials not available. Skipping push."
 fi
 
-# docker buildx build --platform linux/amd64,linux/arm64 -t $docker_username/$docker_reponame:i2b2-webclient-$1-$date --push $BASE/
-
-# docker buildx build --platform linux/amd64,linux/arm64 -t $docker_username/$docker_reponame:i2b2-webclient-master_build_platform --push $WEBCLIENT_REPO/docker
-
-
-# docker tag local/i2b2-web:release-$TAG  ${{ secrets.DOCKER_REPO }}/new_repo:i2b2-web-release-$TAG
-# docker images 
-
-# docker push  ${{ secrets.DOCKER_REPO }}/new_repo:i2b2-web-release-$TAG
-
+echo "Build completed successfully."

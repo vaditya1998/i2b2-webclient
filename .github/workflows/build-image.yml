@@ -2,51 +2,62 @@ name: Docker Image Build Pipeline
 
 on:
   push:
-    branches: ['**']
+    branches:
+      - '**'
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     name: Build i2b2-webclient image
     runs-on: ubuntu-latest
     environment: dev
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    timeout-minutes: 60
 
-      # Check if secrets exist and output a boolean flag
-      - name: Check for Docker Secrets
-        id: secret-check
+    env:
+      IMAGE_TAG: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # Determine whether Docker credentials are available.
+      # Public forks typically do not receive repository secrets.
+      - name: Check Docker credentials
+        id: check-secrets
+        shell: bash
         run: |
-          if [ -n "${{ secrets.DOCKER_LOGIN_TOKEN }}" ]; then
-            echo "has_secrets=true" >> $GITHUB_OUTPUT
+          if [[ -n "${{ secrets.DOCKER_LOGIN_TOKEN }}" ]]; then
+            echo "has_secrets=true" >> "$GITHUB_OUTPUT"
           else
-            echo "has_secrets=false" >> $GITHUB_OUTPUT
+            echo "has_secrets=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # Only attempt login if secrets are present
-      - name: Login to Docker Registry
-        if: steps.secret-check.outputs.has_secrets == 'true'
+      - name: Authenticate with Docker Registry
+        if: steps.check-secrets.outputs.has_secrets == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HOST }}
           password: ${{ secrets.DOCKER_LOGIN_TOKEN }}
 
-      - name: Determine tag
-        id: vars
-        run: |
-          echo "web_tag=${{ github.ref_name }}" >> $GITHUB_ENV
-          echo "Using tag: $web_tag"
-
-      - name: Build and Push image
+      - name: Build Docker image
         env:
-          has_secrets: ${{steps.secret-check.outputs.has_secrets}}
+          HAS_SECRETS: ${{ steps.check-secrets.outputs.has_secrets }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_HOST || 'localuser' }}
+          DOCKER_REPOSITORY: ${{ secrets.DOCKER_REPO || 'i2b2' }}
+        shell: bash
         run: |
-          # Fails the script immediately if a command exits with a non-zero status
-          set -e 
-          # Provide local fallbacks if secrets are missing during a fork/clone run
-          export docker_username=${{ secrets.DOCKER_HOST || 'localuser' }}
-          export docker_reponame=${{ secrets.DOCKER_REPO || 'i2b2' }}
-                    
-          cd docker/
-          bash create_docker_image.sh "${{ github.ref_name }}"
+          set -Eeuo pipefail
+
+          echo "Building image tag: $IMAGE_TAG"
+          echo "Docker credentials available: $HAS_SECRETS"
+
+          test -d docker
+          cd docker
+          test -f create_docker_image.sh
+          bash create_docker_image.sh "$IMAGE_TAG"
