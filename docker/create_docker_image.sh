@@ -22,7 +22,7 @@ WEBCLIENT_REPO="$(pwd)/.."
 CONFIG_FILE="${WEBCLIENT_REPO}/i2b2_config_domains.json"
 PROXY_FILE="${WEBCLIENT_REPO}/proxy.php"
 
-IMAGE_TAG="${DOCKER_USERNAME}/${DOCKER_REPONAME}:i2b2-webclient_${WEBCLIENT_TAG}"
+IMAGE_TAG="${DOCKER_USERNAME}/${DOCKER_REPOSITORY}:i2b2-webclient_${WEBCLIENT_TAG}"
 
 echo "Repository: ${WEBCLIENT_REPO}"
 echo "Image Tag : ${IMAGE_TAG}"
