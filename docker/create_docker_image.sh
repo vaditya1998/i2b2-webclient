@@ -63,7 +63,7 @@ docker build \
 # Publish image when registry credentials are available
 ###############################################################################
 
-if [[ "${has_secrets:-false}" == "true" ]]; then
+if [[ "${HAS_SECRETS:-false}" == "true" ]]; then
     echo "Pushing image..."
     docker push "${IMAGE_TAG}"
 else
