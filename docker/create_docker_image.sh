@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -Eeuo pipefail
+# set -Eeuo pipefail
 
 ###############################################################################
 # Build and optionally publish i2b2-webclient Docker image
@@ -21,6 +21,11 @@ WEBCLIENT_REPO="$(pwd)/.."
 
 CONFIG_FILE="${WEBCLIENT_REPO}/i2b2_config_domains.json"
 PROXY_FILE="${WEBCLIENT_REPO}/proxy.php"
+
+#for local build
+DOCKER_USERNAME="${DOCKER_USERNAME:-localuser}"
+DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-i2b2}"
+HAS_SECRETS="${HAS_SECRETS:-false}"
 
 IMAGE_TAG="${DOCKER_USERNAME}/${DOCKER_REPOSITORY}:i2b2-webclient_${WEBCLIENT_TAG}"
 
@@ -55,9 +60,7 @@ sed -i \
 
 echo "Building Docker image..."
 
-docker build \
-    -t "${IMAGE_TAG}" \
-    "${WEBCLIENT_REPO}/docker/"
+docker build -t "${IMAGE_TAG}" -f "${WEBCLIENT_REPO}/docker/Dockerfile" .
 
 ###############################################################################
 # Publish image when registry credentials are available
